@@ -15,3 +15,7 @@ Features Available
 
 
 The project is still under development more functions will be added as time goes on who knows maybe i will have my Personl Jarvis or Friday like Tony Stark :)
+
+To install all the modules used and additional dependencies open cmd and pip install -r requirements.txt whilst in the folder you have saved the requirements file.
+
+This project was created and tested on windows using python 3.6 if you try and use it on other operating systems and encounter errors feel free to drop a message 
