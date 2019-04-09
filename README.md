@@ -14,7 +14,7 @@ Features Available
 9. Human Interaction (Like a poorman's Siri)
 
 
-The project is still under development more functions will be added as time goes on who knows maybe i will have my Personl Jarvis or Friday like Tony Stark :)
+The project is still under development more functions will be added as time goes on who knows maybe i will have my Personal Jarvis or Friday like Tony Stark :)
 
 To install all the modules used and additional dependencies open cmd and pip install -r requirements.txt whilst in the folder you have saved the requirements file.
 
