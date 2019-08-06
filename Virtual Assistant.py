@@ -1,7 +1,11 @@
-import sys, math, random, pyttsx3, webbrowser, datetime, time, urllib.request, string, platform, json, pyautogui, vlc, os
+import sys, math, random, pyttsx3, webbrowser, datetime, time, urllib.request, string, platform, json, pyautogui, os, json
 from bs4 import *
 import speech_recognition as sr
 from PyQt4 import QtGui, QtCore
+#from commands import Commands
+import face_recognition
+import cv2
+import numpy as np
 
 # Checking lists and dictionaries:-
 conjunctions = ['For', 'And', 'Nor', 'But', 'Or', 'Yet', 'So', 'After', 'Although', 'As', 'Because', 'Before', 'If',
@@ -11,6 +15,7 @@ prepositions = ['About', 'Above', 'Across', 'After', 'Against', 'Along', 'Amid',
                 'Into', 'Near', 'Of', 'Off', 'On', 'Onto', 'Opposite', 'Outside', 'Over', 'Past', 'To', 'Toward',
                 'Towards', 'Under', 'Underneath', 'Until', 'Up', 'Upon', 'Versus', 'Via', 'With', 'Within']
 articles = ['A', 'An', 'The']
+
 specialChars = {'hyphen': '-', 'Dash': '-', 'dot': '.', 'full stop': '.', 'comma': ',', 'exclamation mark': '!',
                 'forward slash': '/', 'backslash': '\\', 'backward slash': '\\', 'at the rate': '@', 'hash': '#',
                 'dollar sign': '$', 'percent sign': '%', 'caret': '^', 'circumflex': '^', 'ampercent': '&',
@@ -41,7 +46,7 @@ closing = ['terminate conversation', 'terminate now', 'exit chat', 'exit now', '
            'close conversation', 'close yourself', 'exit conversation', 'end now', 'end chat', 'end conversation']
 botcall = ['how is everything Shamiso', 'Shamiso how are you', 'how are you', 'how are you Shamiso', 'how are you doing',
            'how are you doing Shamiso', 'how is everything going on', "what's up Shamiso"]
-loveint = ['How do you feel about me', 'Í love you','Í have feelings for you', 'í am inlove with you','Í think i love you']
+loveint = ['How do you feel about me', 'love you','have feelings for you', 'I am inlove with you','I think i love you']
 frequest = [['what is the time right now', "what's the time right now", 'what time is it right now', "what's the time",
              'what time is it in the clock', 'what is the time', "what's the time now", 'what time is it now',
              'tell me the time'],
@@ -56,6 +61,8 @@ botintro = ['who are you', "what's your name", 'who am I talking to', 'what are 
             'what are you called', 'what do people call you']
 weatherRep = ['how is the weather today', 'current weather conditions', 'how is the weather', 'weather conditions',
               'weather forecast']
+detection = ['what am i looking at', 'what is this', 'what do you see']
+newWallpaper = ['New Wallpaper', 'Çhange wallpaper']
 typeMode = ['typing mode on', 'typing mode off']
 whereAbouts = ['where am I', 'what is my location', 'what is my current location', "what's my location",
                "what's my current location", 'get my location', 'what is this place']
@@ -103,7 +110,7 @@ botans = ['I am fine...', 'I am doing great...', 'I\'m fine, thank you...', 'I a
 compos = ['At your service', 'Ask me', 'Waiting for your command', 'Tell me something to do', 'How can I help you?']
 byes = ['until next time', 'bye bye', 'see you soon', 'chao', 'goodbye', 'catch you later', 'see you next time',
         'see you later']
-lovereplies = [ 'I dont think thats proper ', 'Í am not allowed to do that', 'dont be catching feelings here']
+lovereplies = [ 'I dont think thats proper ', 'am not allowed to do that', 'dont be catching feelings here']
 introans = ['I am Shamiso, your virtual personal assistant', 'They call me "Shamiso"', 'People call me "Shamiso"',
             'My name is Shamiso']
 readyans = ['I am online and ready...', 'Ready', 'Up and running...', 'Always ready to help and assist...']
@@ -282,7 +289,7 @@ def keyBoardAutomater(
 # GetLocale:-
 def getLoc():  # Function to automatically determining the geographic location of the user based on the assigned IP address
     # Automatically geolocate the connecting IP
-    f = urllib2.urlopen('http://ip-api.com/json/')
+    f = urllib.request.urlopen('http://ip-api.com/json/')
     json_string = f.read()
     f.close()
     location = json.loads(json_string)
@@ -293,12 +300,42 @@ def getLoc():  # Function to automatically determining the geographic location o
     reply = ("Your current location is : %s, %s, %s.") % (location_city, location_state, location_country)
     engine.say(reply)
     txt.insertPlainText(Bot + " : " + reply + "\n")
+    return location_city
 
+def weatherCity():
+    f = urllib.request.urlopen('http://ip-api.com/json/')
+    json_string = f.read()
+    f.close()
+    location = json.loads(json_string)
+    location_city = location['city']
+    return location_city
 
-# Weather conditions based on current location :-
-def getLocalWeather():  # Function to gather local weather (temperature) information based on the autolocated geographic location.
+def getWallpaper():
+    folder = r'C:\Users\tmuza\Downloads\My Projects\S.H.A.M.I.S.O-Virtual-Assistant-master\S.H.A.M.I.S.O-Virtual-Assistant-master\wallpaper'
+    for the_file in os.listdir(folder):
+        file_path = os.path.join(folder, the_file)
+        try:
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+        except Exception as e:
+            print(e)
+    api_key = 'fd66364c0ad9e0f8aabe54ec3cfbed0a947f3f4014ce3b841bf2ff6e20948795'
+    url = 'https://api.unsplash.com/photos/random?client_id=' + api_key #pic from unspalsh.com
+    f = urllib.request.urlopen(url)
+    json_string = f.read()
+    f.close()
+    parsed_json = json.loads(json_string)
+    photo = parsed_json['urls']['full']
+    urllib.urlretrieve(photo, r"C:\Users\tmuza\Downloads\My Projects\S.H.A.M.I.S.O-Virtual-Assistant-master\S.H.A.M.I.S.O-Virtual-Assistant-master\wallpaper\a") # Location where we download the image to.
+    subprocess.call(["killall Dock"], shell=True)
+    reply = "Wallpaper Changed"
+    engine.say(reply)
+    txt.insertPlainText(Bot + reply )    
+          #  sofiaResponse('wallpaper changed successfully')    
+
+def getLocation():  # Function to automatically determining the geographic location of the user based on the assigned IP address
     # Automatically geolocate the connecting IP
-    f = urllib2.urlopen('http://ip-api.com/json/')
+    f = urllib.request.urlopen('http://ip-api.com/json/')
     json_string = f.read()
     f.close()
     location = json.loads(json_string)
@@ -306,24 +343,47 @@ def getLocalWeather():  # Function to gather local weather (temperature) informa
     location_state = location['regionName']
     location_country = location['country']
     location_zip = location['zip']
+    #reply = ("Your current location is : %s, %s, %s.") % (location_city, location_state, location_country)
+    #engine.say(reply)
+    #txt.insertPlainText(Bot + " : " + reply + "\n")
+    #print(location_city)
+    return location_city
 
+def faceRecognition():
+    
+    video_capture = cv2.VideoCapture(0) 
+    reply = "Tawanda"
+    engine.say(reply)
+    txt.insertPlainText(Bot + reply )
+   # engine.runAndWait()    
+    video_capture.release()
+
+
+# Weather conditions based on current location :-
+def getLocalWeather():  # Function to gather local weather (temperature) information based on the autolocated geographic location.
+    # Automatically geolocate the connecting IP
+    
+    city = getLocation()
+    query='q='+city;
+    
     # Get weather conditions at location fetched from above
-    f = urllib2.urlopen(
-        "http://api.wunderground.com/api/73a91fc9316a85f8/geolookup/conditions/q/" + location_country + "/" + location_city + ".json")
-    json_string = f.read()
-    parsed_json = json.loads(json_string)
-    location = parsed_json['location']['city']
-    temp_c = parsed_json['current_observation']['temp_c']
-    weatherType = parsed_json['current_observation']['weather']
-    degSym = u'\xb0'
-    reply = ("Current temperature in %s is: %s " + degSym + "C, with %s weather.") % (location, temp_c, weatherType)
+    res=urllib.request.urlopen('http://api.openweathermap.org/data/2.5/weather?'+query+'&APPID=b35975e18dc93725acb092f7272cc6b8&units=metric');
+    data = res.read()
+    res.close()
+    location = json.loads(data)
+   # print(location)
+    location_city = location['name']
+    print(location_city)
+    
+    temperature = location['main']['temp']
+    wind_speed = location['wind']['speed']
+    weather = location['weather'][0]['main']
+    
+    reply = ("The current weather in: %s, is standing at %s degrees celcius, and the wind speed is %s meters per second, there are %s in the sky.")%(location_city, temperature, wind_speed, weather)
     engine.say(reply)
     txt.insertPlainText(Bot + " : " + reply + "\n")
-    f.close()
-    engine.runAndWait()
-
-
-# Date, Day and Time calculation methods :-
+    
+  
 now = datetime.datetime.now()
 t1 = ''
 
@@ -353,7 +413,7 @@ class guiWindow(QtGui.QMainWindow):
     def __init__(self):
         super(guiWindow, self).__init__()
         self.setGeometry(300, 150, 750, 500)
-        self.setWindowTitle("Personal Assistant")
+        self.setWindowTitle("Cross Platform Virtual Assistant")
         self.setWindowIcon(QtGui.QIcon("bgimg.jpg"))
         self.setStyleSheet('background-color: #c1cffa;')
         self.setFixedSize(750, 500)
@@ -373,19 +433,19 @@ class guiWindow(QtGui.QMainWindow):
         self.show()
 
     def prnt(self):
-        btn1 = QtGui.QPushButton("Start !", self)
+        btn1 = QtGui.QPushButton("Listen !", self)
         btn1.setStyleSheet('QPushButton {background-color: #065535; color: white; font-weight: bold; font-size: 14px;}')
-        btn1.clicked.connect(self.ava)
+        btn1.clicked.connect(self.shamie)
         btn1.resize(100, 50)
         btn1.move(320, 30)
         btn1.show()
 
     # Main program body :-
-    def ava(self):
+    def shamie(self):
         try:
             with mic as source:
                 mic_recog.adjust_for_ambient_noise(source)
-            txt.insertPlainText("Minimum enery threshold is : {}".format(mic_recog.energy_threshold))
+            txt.insertPlainText("Minimum energy threshold is : {}".format(mic_recog.energy_threshold))
 
             start = "\nHello Tawanda!"  # User interaction starts here
             reply = (start)
@@ -510,6 +570,10 @@ class guiWindow(QtGui.QMainWindow):
                             engine.say(reply)
                             txt.insertPlainText(Bot + " : " + reply)
                             engine.runAndWait()
+                            
+                        elif comms  in detection:
+                            faceRecognition()
+                            
 
                         elif comms in frequest[0]:  # Commands to know - Time, Date or Day.
                             timing()
@@ -828,12 +892,21 @@ class guiWindow(QtGui.QMainWindow):
 
                         elif comms in weatherRep:  # Command to get 'weather' information for current location of execution
                             getLocalWeather()
+                            
+                        elif comms in newWallpaper():
+                            getWallpaper()
+                            
 
                         elif (comms in automateKBoard) or (comms in typeMode):  # Automate keyboard keys and shortcuts
                             keyBoardAutomater(comms)
 
                         elif comms in whereAbouts:  # Automatically locate the location of execution
                             getLoc()
+                            
+                        elif comms  in detection:
+                            faceRecognitiom()
+                           # engine.runAndWait()
+                            
 
                         elif ((comms in mPlayerToggle[0]) or (comms in mPlayerToggle[1]) or (
                             comms in mPlayerToggle[2])):
